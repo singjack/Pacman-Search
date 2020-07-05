@@ -288,21 +288,29 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
-
+        self.gameState = startingGameState
     def getStartState(self):
         """
         Returns the start state (in your state space, not the full Pacman state
         space)
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        "*** YOUR CODE HERE ***" 
+        # Returns the startingPostion and then location of all corners
+        state = (self.startingPosition, (self.corners))
+        return state 
+        # util.raiseNotDefined()
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # print "State", state[1]
+        # print len(state[1])
+        if len(state[1]) == 0:
+            return True
+        else:
+            return False
 
     def getSuccessors(self, state):
         """
@@ -314,17 +322,40 @@ class CornersProblem(search.SearchProblem):
             state, 'action' is the action required to get there, and 'stepCost'
             is the incremental cost of expanding to that successor
         """
-
+        "*** YOUR CODE HERE ***"
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
-            # Add a successor state to the successor list if the action is legal
-            # Here's a code snippet for figuring out whether a new position hits a wall:
-            #   x,y = currentPosition
-            #   dx, dy = Actions.directionToVector(action)
-            #   nextx, nexty = int(x + dx), int(y + dy)
-            #   hitsWall = self.walls[nextx][nexty]
-
-            "*** YOUR CODE HERE ***"
+            # Get current node location, the change in position, and calculate new position
+            x, y = state[0]
+            # print "Current Position: ", x, y
+            dx, dy = Actions.directionToVector(action)
+            # print "Action: ", dx, dy
+            nextx, nexty = int(x + dx), int(y + dy)
+            # print "New Position:", nextx, nexty
+            # If the new location is not a wall continue
+            if not self.walls[nextx][nexty]:
+                # print "No wall"
+                newLocation = (nextx, nexty)
+                corners = state[1]
+                for coordinates in self.corners:
+                    if coordinates == newLocation:
+                        # reference: https://www.w3resource.com/python-exercises/tuple/python-tuple-exercise-12.php
+                        listx = list(corners)
+                        # print coordinates, newLocation
+                        # print "Listx: ", listx
+                        # print "Loc to be removed: ", newLocation
+                        try:
+                            listx.remove(newLocation)
+                            # print "Post removal Listx: ", listx
+                        except:
+                            # print "Already removed"
+                            continue
+                        corners = tuple(listx)
+                    else:
+                        # print "No corner as successor: "
+                        continue
+                successorNode = (newLocation, corners)
+                successors.append((successorNode, action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -358,9 +389,24 @@ def cornersHeuristic(state, problem):
     """
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
-
+    
     "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    # Referenced rutuja's helpful hint of using the diameter of the problem
+    currNode = state[0]
+    remainingCorners = state[1]
+    goalDistanceList = []
+    if (len(remainingCorners) == 0):
+        # print "Cost is 0 since it is a goal"
+        return 0
+    for element in remainingCorners:
+        # Find all distances for each element
+        distance = mazeDistance(currNode, element, problem.gameState)
+        goalDistanceList.append(distance)
+
+    # minDistance = min(goalDistanceList)
+    maxDistance = max(goalDistanceList)
+    # avgCost = maxDistance - minDistance
+    return maxDistance # Default to trivial solution
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -485,7 +531,11 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # Return search algorithm for problem
+        return search.breadthFirstSearch(problem)
+
+
+        # util.raiseNotDefined()
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
@@ -519,9 +569,15 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         complete the problem definition.
         """
         x,y = state
-
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # util.raiseNotDefined()
+        # Referenced Yuta's answer to my question on slack
+        # Returns grid, if T means there is food, check if a state exists in list
+        foodList = self.food.asList()
+        if state in foodList:
+            return True
+        else:
+            return False
 
 def mazeDistance(point1, point2, gameState):
     """

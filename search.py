@@ -123,13 +123,87 @@ def depthFirstSearch(problem):
 
 
 def breadthFirstSearch(problem):
-    
-    return 0
+    from game import Directions
+    s = Directions.SOUTH
+    w = Directions.WEST
+    n = Directions.NORTH
+    e = Directions.EAST 
+    # print "Start:", problem.getStartState()
+    # print "Is the start a goal?", problem.isGoalState(problem.getStartState())
+    # print "Start's successors:", problem.getSuccessors(problem.getStartState())
+    directionsList = [] #Ultimately holds direction list to the goal state to be return
+    visitedNodes = [] 
+    currPath = util.Queue() #holds the current path of each node
+    frontier = util.Queue() #layer that fans out for search
+    currNode = problem.getStartState()  
+    #Quick check to reutrn if starting state is also Goal state
+    if(problem.isGoalState(currNode)):
+        return[]
+    frontier.push(currNode) #enqueued starting node
+    # visitedNodes.append(currNode)
+    currNode = frontier.pop()
+    while(problem.isGoalState(currNode) == False):
+        if currNode not in visitedNodes:
+            successors = problem.getSuccessors(currNode)
+            visitedNodes.append(currNode)
+                # #now we want to look at first node in Queue
+            # for i in successors:
+            #     print(i[0])
+            #     frontier.push(i[0])
+            # for j in successors: 
+            #     directionsList.append(j[1])
+            #     tempDirections = directionsList
+            #     currPath.push(tempDirections)
+            i=0
+            while i < len(successors):
+                frontier.push(successors[i][0])
+                currPath.push(directionsList + [successors[i][1]])
+                i+=1
+
+        directionsList = currPath.pop()
+        currNode = frontier.pop() #grabs top item
+        
+    return directionsList
 
 def uniformCostSearch(problem):
-    """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # """Search the node of least total cost first."""
+    '''
+    Resources that I consulted in helping me write my BFS algorithm
+    References were for conceptual aid only!
+    Youtube Video by John Levine: https://www.youtube.com/watch?v=dRMvK76xQJI
+    '''
+    from game import Directions
+    s = Directions.SOUTH
+    w = Directions.WEST
+    n = Directions.NORTH
+    e = Directions.EAST
+    directionsList = [] #Ultimately holds direction list to the goal state to be return
+    visitedNodes = [] 
+    cost = 0
+    currPath = util.PriorityQueue() #holds the current path of each node
+    frontier = util.PriorityQueue()
+    currNode = problem.getStartState()
+    if(problem.isGoalState(currNode)): #returns if start state is goal
+        return[]
+    frontier.push(currNode,-1)
+    currNode = frontier.pop()
+
+    while(problem.isGoalState(currNode) == False):
+        if currNode not in visitedNodes:
+            successors = problem.getSuccessors(currNode)
+            visitedNodes.append(currNode)
+            i=0
+            while i < len(successors):
+                if successors[i][0] not in visitedNodes:
+                    # temp = directionsList + [successors[i][1]]
+                    currPath.push(directionsList + [successors[i][1]], problem.getCostOfActions(directionsList + [successors[i][1]]))
+                    frontier.push(successors[i][0],problem.getCostOfActions(directionsList + [successors[i][1]]))
+                i+=1
+        directionsList = currPath.pop()
+        currNode = frontier.pop() #grabs top item
+        
+    return directionsList            
+
 
 def nullHeuristic(state, problem=None):
     """
